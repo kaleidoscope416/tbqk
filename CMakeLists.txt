@@ -23,6 +23,17 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(untitled
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        hexbotto.cpp
+        hexbotto.h
+
+
+        guanka.h guanka.cpp guanka.ui
+        level.h level.cpp
+        setmode.h setmode.cpp
+        freemode.h freemode.cpp
+
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET untitled APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
