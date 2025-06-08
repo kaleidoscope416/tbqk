@@ -15,6 +15,7 @@ public:
     Setmode();
     void onSaveButtonClicked();
     void change_layer(HexagonButton* cur_button);
+    void getUserId(QWidget* parent) override;
 };
 
 #endif // SETMODE_H

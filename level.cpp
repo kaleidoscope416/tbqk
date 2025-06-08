@@ -5,8 +5,12 @@
 
 Level::Level(QString name,int layer ) :last_button(NULL),question_name(name),total_stride_length(0)
 {
+    try_time = 0;
+    stride_length = 0;
+    total_stride_length =0;
     int layers = 0;
     this->widget = new QWidget;
+    getUserId(widget);
     widget->setFixedSize(1600,900);
     this->button_map=QList<QList<HexagonButton*>>();
     this->button_map.resize(this->loadButtonStatesLayers(name)+1);
@@ -127,6 +131,7 @@ void Level::generateHexagonMap(int layers) {
              this->button_map[i].append(setButtonPosition(this->widget,x,y));
         }
     }
+    timer.start();
 }
 
 
@@ -188,14 +193,17 @@ void Level::handle_click(HexagonButton* cur_button){
         this->change_color(cur_button);
         if (this->is_finish()) {
             //游戏胜利结算
-             resultWindow();
+            qint64 time = timer.elapsed();
+             resultWindow(time);
             this->try_time = 0;
+
             // this->reset_page();
             // this->loadButtonStates(question_name);
         }
         //继续做题，什么都不发神
     } else {
         //重置题面
+        try_time +=1;
         this->reset_page();
         this->loadButtonStates(question_name);
     }
@@ -230,7 +238,10 @@ void Level::saveButtonStates(const QString& filename) {
         mapArray.append(layerArray);
     }
 
-    QJsonDocument doc(mapArray);
+    QJsonObject rootObj;
+    rootObj["playName"] = playName;
+    rootObj["map"] = mapArray;
+    QJsonDocument doc = QJsonDocument(rootObj);
 
     QFile file(filename);
     if (file.open(QIODevice::WriteOnly)) {
@@ -265,9 +276,27 @@ int Level::loadButtonStates(const QString& filename) {
         return false;
     }
 
-    QJsonArray mapArray = doc.array();
-    //int layers = qMin(mapArray.size(), button_map.size());
-    int layers = mapArray.size();
+    QJsonArray mapArray;
+    // 判断格式
+    if (doc.isObject()) {
+        QJsonObject rootObj = doc.object();
+        if ( rootObj.contains("playName") && rootObj["playName"].isString()) {
+            playName = rootObj["playName"].toString();
+        }
+        if (!rootObj.contains("map") || !rootObj["map"].isArray()) {
+            qWarning() << "JSON对象中没有 map 数组！";
+            return false;
+        }
+        mapArray = rootObj["map"].toArray();
+    } else if (doc.isArray()) {
+        mapArray = doc.array();
+        playName = "匿名" ;// 老格式无 playName
+    } else {
+        qWarning() << "JSON文档格式错误！";
+        return false;
+    }
+
+    int layers = qMin(mapArray.size(), button_map.size());
     for (int i = 0; i < layers; ++i) {
         QJsonArray layerArray = mapArray[i].toArray();
         QList<HexagonButton*>& layer = button_map[i];
@@ -284,9 +313,6 @@ int Level::loadButtonStates(const QString& filename) {
             }
         }
     }
-
-    this->try_time +=1;
-    // 强制更新窗口以显示更改
     this->update();
 
     qDebug() << "文件加载成功：" << filename;
@@ -323,7 +349,7 @@ int Level::loadButtonStatesLayers(const QString& filename) {
     return layers-1;
 }
 
-void Level::resultWindow() {
+void Level::resultWindow(qint64 time) {
 
     QWidget * resultwindow = new QWidget();
     setWindowTitle("Game Result");
@@ -335,7 +361,7 @@ void Level::resultWindow() {
     // 添加一个标签显示游戏结果
     QLabel *resultLabel = new QLabel("Congratulations! You Win!\n这一次你使用了"
     +QString::number(this->stride_length)+"步\n你尝试了"+QString::number(this->try_time + 1)+"次\n"+
-    "你总计走了"+QString::number( total_stride_length)+ "步", resultwindow);
+    "你总计走了"+QString::number( total_stride_length)+ "步\n"+"你总计用时"+QString::number(time)+"豪秒", resultwindow);
     QFont font = resultLabel->font();
     font.setPointSize(24); // 设置字号为24
     resultLabel->setFont(font);
@@ -359,6 +385,23 @@ void Level::resultWindow() {
 
     resultwindow->show();
 }
+
+void Level::getUserId(QWidget* parent)  {
+    bool ok;
+    QString userId = QInputDialog::getText(parent,
+                                           "输入用户ID",
+                                           "请输入您的用户ID：",
+                                           QLineEdit::Normal,
+                                           "",
+                                           &ok);
+    if (ok && !userId.isEmpty()) {
+        playerName = userId;
+    } else {
+        // 用户取消或未输入，可给默认值或退出
+        playerName = "匿名";
+    }
+}
+
 
 
 

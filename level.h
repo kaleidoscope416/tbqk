@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QInputDialog>
 #include "hexbotto.h"
+#include <QElapsedTimer>
 
 
 class Level : public QWidget
@@ -30,11 +31,12 @@ public:
     int  loadButtonStates(const QString& filename);
     int loadButtonStatesLayers(const QString& filename);
     void handleClickButton(HexagonButton* button);
-
-    void resultWindow();
+    virtual void getUserId(QWidget* parent = nullptr) ;
+    void resultWindow(qint64 time);
+    void printPlayName();
 
 public slots:
-    //void change_button();
+
 
 private:
     QWidget *widget;
@@ -42,9 +44,12 @@ private:
     QList<HexagonButton*> store_button_map;
     HexagonButton* last_button;
     QString question_name;
-    int try_time;
+    int try_time = 0;
     int stride_length;
     int total_stride_length;
+    QString playName;
+    QString playerName;
+    QElapsedTimer timer;
 
     ~Level() {
     disconnect(this, nullptr, nullptr, nullptr);

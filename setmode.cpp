@@ -38,4 +38,20 @@ void Setmode::onSaveButtonClicked() {
     }
 }
 
+void Setmode::getUserId(QWidget* parent) {
+    bool ok;
+    QString userId = QInputDialog::getText(parent,
+                                           "输入用户ID",
+                                           "请输入您的用户ID：",
+                                           QLineEdit::Normal,
+                                           "",
+                                           &ok);
+    if (ok && !userId.isEmpty()) {
+        playName = userId;
+    } else {
+        // 用户取消或未输入，可给默认值或退出
+        playName = "匿名";
+    }
+}
+
 

@@ -57,17 +57,10 @@ void HexagonButton::paintEvent(QPaintEvent *event)  {
 
     // 绘制点
     if (this->isPressed) {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
 
-        // 设置点的颜色和大小
-        painter.setBrush(Qt::red);
-        painter.setPen(Qt::NoPen);
-
-        // 计算按钮的中心点
-
-        // 绘制点
-        painter.drawEllipse(centerX , centerY , 10, 10);
+        painter.setPen(isPressed ? QPen(Qt::red, 2) : QPen(Qt::blue, 2));  // 红色边框表示按下状态
+        painter.setBrush(color);
+        painter.drawPath(hexagonPath);
     }
 }
 

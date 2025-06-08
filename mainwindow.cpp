@@ -49,7 +49,10 @@ void MainWindow::on_pushButton_2_clicked()
     //     layers = 4;
     // }
      QString levelname = QFileDialog::getOpenFileName(this, "Open 关卡", "", "JSON Files (*.json)");
+    if (levelname.isEmpty()) {
+         return;
+    }
     Level *level = new Level(levelname,2);
-      this->close();
+    this->close();
 }
 
