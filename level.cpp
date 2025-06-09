@@ -3,7 +3,7 @@
 #define Y 26
 #define Yy 52
 
-Level::Level(QString name,int layer ) :last_button(NULL),question_name(name),total_stride_length(0)
+Level::Level(QString name,int layer,int m) :last_button(NULL),question_name(name),total_stride_length(0),mod(m),use_time(0)
 {
     try_time = 0;
     stride_length = 0;
@@ -193,19 +193,19 @@ void Level::handle_click(HexagonButton* cur_button){
         this->change_color(cur_button);
         if (this->is_finish()) {
             //游戏胜利结算
-            qint64 time = timer.elapsed();
-             resultWindow(time);
+            this->use_time = timer.elapsed();
+            resultScore();
+            saveScore();
+            resultWindow(use_time);
             this->try_time = 0;
-
-            // this->reset_page();
-            // this->loadButtonStates(question_name);
         }
         //继续做题，什么都不发神
     } else {
         //重置题面
         try_time +=1;
         this->reset_page();
-        this->loadButtonStates(question_name);
+        if (this->mod == 0 )
+            this->loadButtonStates(question_name);
     }
 }
 
@@ -254,11 +254,13 @@ int Level::loadButtonStates(const QString& filename) {
     QFile file(filename);
     if (!file.exists()) {
         qWarning() << "文件不存在：" << filename;
+        back_to_main ();
         return false;
     }
 
     if (!file.open(QIODevice::ReadOnly)) {
         qCritical() << "无法打开文件进行读取：" << file.errorString();
+         back_to_main ();
         return false;
     }
 
@@ -268,11 +270,13 @@ int Level::loadButtonStates(const QString& filename) {
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (doc.isNull()) {
         qWarning() << "JSON解析失败！";
+        back_to_main ();
         return false;
     }
 
     if (!doc.isArray()) {
         qWarning() << "JSON文档不是数组！";
+         back_to_main ();
         return false;
     }
 
@@ -285,6 +289,7 @@ int Level::loadButtonStates(const QString& filename) {
         }
         if (!rootObj.contains("map") || !rootObj["map"].isArray()) {
             qWarning() << "JSON对象中没有 map 数组！";
+             back_to_main ();
             return false;
         }
         mapArray = rootObj["map"].toArray();
@@ -293,6 +298,7 @@ int Level::loadButtonStates(const QString& filename) {
         playName = "匿名" ;// 老格式无 playName
     } else {
         qWarning() << "JSON文档格式错误！";
+         back_to_main ();
         return false;
     }
 
@@ -310,6 +316,7 @@ int Level::loadButtonStates(const QString& filename) {
                 button->set_color(buttonObj["color"].toBool());
             } else {
                 qWarning() << "JSON对象中没有颜色信息或格式错误：" << buttonObj;
+                 back_to_main ();
             }
         }
     }
@@ -317,6 +324,14 @@ int Level::loadButtonStates(const QString& filename) {
 
     qDebug() << "文件加载成功：" << filename;
     return layers;
+}
+
+void Level::back_to_main (){
+    MainWindow *newWindow = new MainWindow();
+    newWindow->show();
+    this->widget->close();
+    disconnect(this, nullptr, nullptr, nullptr);
+    this->deleteLater();
 }
 
 int Level::loadButtonStatesLayers(const QString& filename) {
@@ -361,7 +376,8 @@ void Level::resultWindow(qint64 time) {
     // 添加一个标签显示游戏结果
     QLabel *resultLabel = new QLabel("Congratulations! You Win!\n这一次你使用了"
     +QString::number(this->stride_length)+"步\n你尝试了"+QString::number(this->try_time + 1)+"次\n"+
-    "你总计走了"+QString::number( total_stride_length)+ "步\n"+"你总计用时"+QString::number(time)+"豪秒", resultwindow);
+                                         "你总计走了"+QString::number( total_stride_length)+ "步\n"+"你总计用时"+QString::number(time)+"豪秒\n"
+                                         +"你的得分是"+QString::number(score), resultwindow);
     QFont font = resultLabel->font();
     font.setPointSize(24); // 设置字号为24
     resultLabel->setFont(font);
@@ -388,7 +404,7 @@ void Level::resultWindow(qint64 time) {
 
 void Level::getUserId(QWidget* parent)  {
     bool ok;
-    QString userId = QInputDialog::getText(parent,
+    QString userId = QInputDialog::getText(nullptr,
                                            "输入用户ID",
                                            "请输入您的用户ID：",
                                            QLineEdit::Normal,
@@ -402,7 +418,39 @@ void Level::getUserId(QWidget* parent)  {
     }
 }
 
+//only use in result window
+void Level::resultScore(){
+    qint64 max_use_time = 10000;         // 最大使用时间
+    int max_try_time = 100;              // 最大尝试次数
+    int max_stride_length = 200;         // 最大步长
+    int max_total_stride_length = 1000;  // 最大总步长
 
+    // 权重（可根据实际需求调整）
+    double w_use_time = 0.4;
+    double w_try_time = 0.5;
+    double w_stride_length = 1;
+    double w_total_stride_length = 0.2;
+
+    // 归一化
+    double norm_use_time = double(use_time) / max_use_time;
+    double norm_try_time = double(try_time) / max_try_time;
+    double norm_stride_length = double(stride_length) / max_stride_length;
+    double norm_total_stride_length = double(total_stride_length) / max_total_stride_length;
+    score = w_use_time * norm_use_time +
+                   w_try_time * norm_try_time +
+                   w_stride_length * norm_stride_length +
+                   w_total_stride_length * norm_total_stride_length;
+    score = score*100000;
+}
+
+void Level::saveScore() {
+    QFile file(R_NAME);
+    if (file.open(QIODevice::Append | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << playerName << "," << question_name << "," << score << ","<<playName<<"\n";
+        file.close();
+    }
+}
 
 
 

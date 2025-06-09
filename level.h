@@ -11,13 +11,14 @@
 #include <QInputDialog>
 #include "hexbotto.h"
 #include <QElapsedTimer>
+#include "record.h"
 
 
 class Level : public QWidget
 {
     Q_OBJECT
 public:
-    Level(QString name,int layer = 0);
+    Level(QString name,int layer = 0,int mod = 0);
     HexagonButton* setButtonPosition(QWidget* widget = nullptr,int x=0, int y=0);
     void generateHexagonMap(int layers=0);
     bool is_neibor(HexagonButton* next_button);
@@ -33,7 +34,9 @@ public:
     void handleClickButton(HexagonButton* button);
     virtual void getUserId(QWidget* parent = nullptr) ;
     void resultWindow(qint64 time);
-    void printPlayName();
+    void saveScore();
+    void resultScore();
+    void back_to_main ();
 
 public slots:
 
@@ -44,12 +47,15 @@ private:
     QList<HexagonButton*> store_button_map;
     HexagonButton* last_button;
     QString question_name;
-    int try_time = 0;
-    int stride_length;
-    int total_stride_length;
     QString playName;
     QString playerName;
     QElapsedTimer timer;
+    int mod;
+    qint64 use_time;
+    int try_time = 0;
+    int stride_length;
+    int total_stride_length;
+    double score;
 
     ~Level() {
     disconnect(this, nullptr, nullptr, nullptr);

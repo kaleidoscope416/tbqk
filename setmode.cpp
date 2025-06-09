@@ -1,6 +1,6 @@
 #include "setmode.h";
 
-Setmode::Setmode() : Level("",0){
+Setmode::Setmode() : Level("",0,1){
 
     for(QList<HexagonButton*> layer : this->button_map){
         for(HexagonButton* button : layer){

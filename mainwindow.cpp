@@ -9,7 +9,9 @@
 #include "./ui_mainwindow.h"
 #include "guanka.h"
 #include "setmode.h"
+#include "rank.h"
 
+class rank;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -48,11 +50,18 @@ void MainWindow::on_pushButton_2_clicked()
     // if (!ok) {
     //     layers = 4;
     // }
-     QString levelname = QFileDialog::getOpenFileName(this, "Open 关卡", "", "JSON Files (*.json)");
+    QString levelname = QFileDialog::getOpenFileName(this, "Open 关卡", "", "JSON Files (*.json)");
     if (levelname.isEmpty()) {
          return;
     }
     Level *level = new Level(levelname,2);
+    this->close();
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    class rank *r = new rank();
     this->close();
 }
 

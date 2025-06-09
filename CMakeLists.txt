@@ -30,7 +30,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         guanka.h guanka.cpp guanka.ui
         level.h level.cpp
         setmode.h setmode.cpp
-        freemode.h freemode.cpp
+        record.h record.cpp
+        rank.h rank.cpp
+
 
 
 

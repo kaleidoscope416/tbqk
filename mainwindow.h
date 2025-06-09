@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include "hexbotto.h"
+#include "rank.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,6 +30,8 @@ private slots:
     void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
 
 private:
     Ui::MainWindow *ui;
